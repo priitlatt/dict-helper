@@ -5,7 +5,7 @@ Project layout:
 	/doc - for most documentation
 
 Code layout:
-	Complete guidlines can be found from:
+	Complete guidelines can be found from:
 		http://www.python.org/dev/peps/pep-0008/
 	
 	Long variable names are written as:
