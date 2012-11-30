@@ -1,0 +1,28 @@
+Project layout:
+	/scripts - for command-line interface (or likes) stuff
+	/tests - for (unit) tests
+	/lib - for C libraries
+	/doc - for most documentation
+
+Code layout:
+	Complete guidlines can be found from:
+		http://www.python.org/dev/peps/pep-0008/
+	
+	Long variable names are written as:
+		long_variable_name
+	Long function names are written as:
+		def long_function_name(var_one, var_two)
+	Class names are written as:
+		class MyClass
+	Imports are done in separate lines
+	No whitespaces are alloewd before comma, semicolon or colon
+	Constants are written as CONSTANT or LONG_CONSTANT
+
+Running the build script:
+	One must run the build script 'setup.py' in the /scripts folder
+	to make a windows executable out of the source code.
+	To run the build script execute 'python setup.py build'
+	in desired console editor.
+
+Sample project can be found at:
+	https://github.com/kennethreitz/samplemod
