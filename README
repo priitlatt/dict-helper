@@ -1,11 +1,11 @@
 Project layout:
 	/scripts - for command-line interface (or likes) stuff
 	/tests - for (unit) tests
-	/lib - for C libraries
-	/doc - for most documentation
+	/lib - for (C) libraries
+	/doc - for documentation (if such exists)
 
 Code layout:
-	Complete guidlines can be found from:
+	Complete guidelines can be found from:
 		http://www.python.org/dev/peps/pep-0008/
 	
 	Long variable names are written as:
