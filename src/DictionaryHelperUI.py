@@ -2,18 +2,27 @@
 
 import tkinter as tk
 import tkinter.filedialog as FileDialog
+import XlsProcessor as XlsP
+import threading
+import time
 
 class DictHelperUI:
     
     def __init__(self, parent):
+        
         BTN_WIDTH = 12
-        PARENT_HEIGHT = 220 
-        PARENT_WIDTH = 250
+        PARENT_HEIGHT = 100 
+        PARENT_WIDTH = 220
+        RESIZABLE = False
+        PROGRAM_TITLE = "Dictionary Helper"
+        
+        self.counter = 0
+        self.thread_runnable = True
         
         self.my_parent = parent
-        self.my_parent.title("Dictionary Helper")
-        self.my_parent.geometry(str(PARENT_HEIGHT)+"x"+str(PARENT_WIDTH))
-        self.my_parent.resizable(width=False, height=False)
+        self.my_parent.title(PROGRAM_TITLE)
+        self.my_parent.geometry(str(PARENT_WIDTH)+"x"+str(PARENT_HEIGHT))
+        self.my_parent.resizable(width=RESIZABLE, height=RESIZABLE)
         self.my_container = tk.Frame(parent)
         self.my_container.pack(expand=tk.YES, fill=tk.BOTH)
         
@@ -33,35 +42,51 @@ class DictHelperUI:
         self.close_btn.bind("<Button-1>", self.close_btn_click)
         self.close_btn.bind("<Return>", self.close_btn_click)
         
-        self.my_message="Please select a file"
-        self.label = tk.Label(self.text_frame, text=self.my_message, justify=tk.LEFT)#.pack(side=BOTTOM, anchor=W)
+        self.lbl_text=tk.StringVar()
+        self.label = tk.Label(self.text_frame, textvariable=self.lbl_text,
+                              wraplength=PARENT_WIDTH-40, anchor=tk.W, justify=tk.CENTER)
+        self.lbl_text.set("Please select a file")
         self.label.pack()
         
     def select_file_btn_click(self, event):
-        #filename = self.filePicker()
-        #self.label.configure(text=filename)
+        self.thread_runnable = False
         self.readfile()
         
     def close_btn_click(self, event):
         self.my_parent.destroy()
         
     def file_picker(self):
-        filename = FileDialog.askopenfilename()
-        # print(filename)
-        return filename
+        return FileDialog.askopenfilename()
         
     def readfile(self):
-        filename = self.file_picker()
+        filepath = self.file_picker()
         
-        if not filename.endswith('.txt') and not filename.endswith('.csv') and not filename.endswith('.py'):
-            if filename != "":
-                lbl_text = "File '" + str(filename) + "' is not compatible, please select 'txt' or 'csv' file!"
-                self.label.configure(text=lbl_text)
-            
+        if not filepath.endswith('.xls') and not filepath.endswith('.xlsx'):
+            if filepath != "":
+                filename = filepath.split('/')[-1]
+                if len(filename) > 20:
+                    filename = filename[:20] + "..."
+                self.lbl_text.set("File '" + str(filename) + "' is not compatible.\nPlease select 'xls' or 'csv' file!")
         else:
-            with open(filename) as f:
-                file_text = ""
-                for line in f:
-                    #print(line)
-                    file_text += line + "\n"
-                self.label.configure(text=file_text)
+            self.start_process(filepath)
+            
+    def start_process(self, filepath):
+        xls_processor = XlsP.XlsProcessor()
+        self.thread_runnable = True
+        self.lbl_text.set("Opening file")
+        xls_processor.open_book(filepath)
+        t = threading.Thread(target = xls_processor.do_smth)
+        t.start()
+        while t.is_alive():
+            if self.thread_runnable:
+                self.counter += 1
+                self.lbl_text.set("Processing" + (self.counter % 4)*".")
+                self.my_parent.update()
+                time.sleep(0.5)
+            else:
+                t._stop()
+        t.join()
+        if xls_processor.everything_ok and self.thread_runnable:
+            self.lbl_text.set("Finished")
+        else:
+            self.lbl_text.set("Something went wrong")
