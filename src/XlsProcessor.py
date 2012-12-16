@@ -29,26 +29,30 @@ class XlsProcessor:
         self.everything_ok = True
         self.message = "Finding codes"
         
-        eng_codes = self.make_string_array(self.add_codes(self.eng))
-        rus_codes = self.make_string_array(self.add_codes(self.rus))
-        
-        self.message = "Sorting lists"
-        eng_codes_sorted = sorted(set(eng_codes), key=locale.strxfrm)
-        rus_codes_sorted = sorted(set(rus_codes), key=locale.strxfrm)
-        
-        wb = xlwt.Workbook()
-        ws = wb.add_sheet('Translations codes')
-        
-        self.message = "Writing document"
         try:
+            eng_codes = self.make_string_array(self.add_codes(self.eng))
+            rus_codes = self.make_string_array(self.add_codes(self.rus))
+            
+            self.message = "Sorting lists"
+            eng_codes_sorted = sorted(set(eng_codes), key=locale.strxfrm)
+            rus_codes_sorted = sorted(set(rus_codes), key=locale.strxfrm)
+            
+            wb = xlwt.Workbook()
+            ws = wb.add_sheet('Translations codes')
+            
+            self.message = "Writing document"
+            
             for i in range(len(eng_codes_sorted)):
                 ws.write(i, 0, eng_codes_sorted[i])
             for j in range(len(rus_codes_sorted)):
                 ws.write(j, 1, rus_codes_sorted[j])
+            
+            self.save_file(wb)
+            
         except Exception as e:
             print(e)
             self.everything_ok = False
-        self.save_file(wb)
+            self.message = "Error: File is not compatible"
         
     def save_file(self, wb):
         file_exists = True

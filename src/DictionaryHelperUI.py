@@ -89,8 +89,5 @@ class DictHelperUI:
                 t._stop()
         t.join()
         stop = time.time()
-        if xls_processor.everything_ok and self.thread_runnable:
-            self.lbl_text.set(xls_processor.message + 
+        self.lbl_text.set(xls_processor.message + 
                               '\nTotal time ' + str(int(stop-start)) + " seconds")
-        else:
-            self.lbl_text.set("Something went wrong")
