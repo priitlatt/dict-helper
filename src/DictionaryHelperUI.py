@@ -39,7 +39,7 @@ class DictHelperUI:
         
         self.close_btn = tk.Button(self.buttons_frame, text="Close", width=BTN_WIDTH)
         self.close_btn.pack(side=tk.RIGHT)
-        self.close_btn.bind("<Button-1>", self.close_btn_click)
+        self.close_btn.bind("<ButtonRelease-1>", self.close_btn_click)
         self.close_btn.bind("<Return>", self.close_btn_click)
         
         self.lbl_text=tk.StringVar()
@@ -71,22 +71,26 @@ class DictHelperUI:
             self.start_process(filepath)
             
     def start_process(self, filepath):
+        start = time.time()
+        
         xls_processor = XlsP.XlsProcessor()
         self.thread_runnable = True
         self.lbl_text.set("Opening file")
         xls_processor.open_book(filepath)
-        t = threading.Thread(target = xls_processor.do_smth)
+        t = threading.Thread(target = xls_processor.process_xls)
         t.start()
         while t.is_alive():
             if self.thread_runnable:
                 self.counter += 1
-                self.lbl_text.set("Processing" + (self.counter % 4)*".")
+                self.lbl_text.set(xls_processor.message + (self.counter % 4)*".")
                 self.my_parent.update()
                 time.sleep(0.5)
             else:
                 t._stop()
         t.join()
+        stop = time.time()
         if xls_processor.everything_ok and self.thread_runnable:
-            self.lbl_text.set("Finished")
+            self.lbl_text.set(xls_processor.message + 
+                              '\nTotal time ' + str(int(stop-start)) + " seconds")
         else:
             self.lbl_text.set("Something went wrong")

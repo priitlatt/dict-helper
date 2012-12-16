@@ -1,14 +1,15 @@
 from cx_Freeze import setup, Executable
 
 exe = Executable(
-    script="__init__.pyw",
+    script="Helper.pyw",
+    icon = "icons/icon.ico",
     base="Win32GUI")
 
-build_options = {"packages": ["xlrd"]}
+#build_options = {"packages": ["xlrd"]}
 
 setup(
-        name = "FilePicker",
+        name = "Helper",
         version = "0.1",
         description = "Dictionary raw data formatter helper",
-        options = {"build_exe": build_options},
+        #options = {"build_exe": build_options},
         executables = [exe])
