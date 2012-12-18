@@ -4,11 +4,15 @@ import xlrd
 import xlwt3 as xlwt
 import locale
 
+#import sys, traceback
+
 class XlsProcessor:
     
     def __init__(self):
         self.filepath = ""
         self.message = "Processing"
+        self.show_rus_warning = False
+        self.show_eng_warning = False
         self.everything_ok = False
     
     def open_book(self, filepath):
@@ -21,38 +25,50 @@ class XlsProcessor:
             self.eng = self.sheet.col_values(2)
             self.rus = self.sheet.col_values(3)
         except Exception as e:
+            self.message = "Something went wrong\n" + str(e)
             print(e)
         finally:
             return True
-        
+
     def process_xls(self):
         self.everything_ok = True
-        self.message = "Finding codes"
         
         try:
-            eng_codes = self.make_string_array(self.add_codes(self.eng))
-            rus_codes = self.make_string_array(self.add_codes(self.rus))
+            self.message = "Finding codes for english words"
+            eng_with_codes = self.make_sortable_array(self.add_codes(self.eng))
+            self.message = "Finding codes for russian words"
+            rus_with_codes = self.make_sortable_array(self.add_codes(self.rus))
             
             self.message = "Sorting lists"
-            eng_codes_sorted = sorted(set(eng_codes), key=locale.strxfrm)
-            rus_codes_sorted = sorted(set(rus_codes), key=locale.strxfrm)
+
+            eng_sorted = sorted(eng_with_codes, key= lambda k: locale.strxfrm(k[0]))
+            rus_sorted = sorted(rus_with_codes, key= lambda k: locale.strxfrm(k[0]))
             
             wb = xlwt.Workbook()
             ws = wb.add_sheet('Translations codes')
             
             self.message = "Writing document"
             
-            for i in range(len(eng_codes_sorted)):
-                ws.write(i, 0, eng_codes_sorted[i])
-            for j in range(len(rus_codes_sorted)):
-                ws.write(j, 1, rus_codes_sorted[j])
+            for i in range(len(eng_sorted)):
+                ws.write(i, 0, eng_sorted[i][0] + ' ' + eng_sorted[i][1])
+            for j in range(len(rus_sorted)):
+                ws.write(j, 1, rus_sorted[j][0] + ' ' + rus_sorted[j][1])
+            
+            self.set_warnings(eng_sorted[-1][0], rus_sorted[-1][0])
             
             self.save_file(wb)
             
         except Exception as e:
             print(e)
             self.everything_ok = False
-            self.message = "Error: File is not compatible"
+            self.message = "Error: " + str(e)
+            #traceback.print_exc(file=sys.stdout)
+            
+    def set_warnings(self, eng, rus):
+        if ord(eng[0]) > 500:
+            self.show_eng_warning = True
+        if ord(rus[0]) > 1500:
+            self.show_rus_warning = True
         
     def save_file(self, wb):
         file_exists = True
@@ -71,29 +87,42 @@ class XlsProcessor:
                     filename_modification = "processed" + str(count) + "_"
                 with open(path+filename_modification+filename):
                     pass
+            except IOError:
+                print("File doesn't exist")
+                file_exists = False
             except Exception as e:
                 print(e)
+                self.message = "Something went wrong\n" + str(e)
                 file_exists = False
             finally:
                 count += 1
         try:
             wb.save(path+filename_modification+filename)
         except Exception as e:
+            self.message = "Something went wrong\n" + str(e)
             print(e)
-        self.message = "Finished"
+        self.message = "Finished. " + "Saved file\n" + str(filename_modification+filename)
 
-    def split_rows(self, array):
+    def split_rows(self, array, splitter = ', '):
         new_array = []
         for row in array:
-            new_array.append(row.split(', '))
+            new_array.append(row.split(splitter))
         return new_array
     
     def add_codes(self, array):
+        """
+        takes in array with translations like
+        array = ['individual, item, object', 'integrate', 'complex', 'curve, line']
+        and returns new array that has words attached codes in arrays like
+        new_array = [['individual', 'T5', 'A8'], ['item', 'F4'], ['object', 'D6'], 
+        ['integrate', 'G98'], ['complex', 'C45', 'C72', 'C80'],
+        ['curve', 'K100'], ['line', 'J50']]
+        """
         new_array = []
-        array2 = self.split_rows(array)
+        splitted_array = self.split_rows(array)
         
-        for i in range(len(array2)):
-            for word in array2[i]:
+        for i in range(len(splitted_array)):
+            for word in splitted_array[i]:
                 word_ = word
                 if word_.startswith('('):
                     w_ = word_.split(')')
@@ -101,19 +130,28 @@ class XlsProcessor:
                     if word_.startswith(' '):
                         word_ = word_[1:]
                 new_row = [word_]
-                for k in range(len(array2)):
-                    for w in array2[k]:
+                for k in range(len(splitted_array)):
+                    for w in splitted_array[k]:
                         if word == w:
                             new_row.append(self.codes[k])
                 new_array.append(new_row)
         return new_array
-    
-    def make_string_array(self, array):
+
+    def make_sortable_array(self, array):
+        """
+        takes in array that has words attached codes in arrays like
+        array = [['individual', 'T5', 'A8'], ['item', 'F4'], 
+        ['integrate', 'G98'], ['complex', 'C45', 'C72', 'C80']] and 
+        returns new array that has words as one string and all codes as another string
+        like [['individual', 'T5, A8'], ['item', 'F4'], 
+        ['integrate', 'G98'], ['complex', 'C45, C72, C80']]
+        """
         array_codes_strings = []
         for row in array:
-            row_string = row[0] + ' ' + row[1]
+            row_string = row[0] + '*@*' + row[1]
             if len(row) > 2:
                 for i in range(2, len(row)):
                     row_string += ', ' + row[i]
             array_codes_strings.append(row_string)
-        return array_codes_strings
+        array_codes_strings = list(set(array_codes_strings))
+        return self.split_rows(array_codes_strings, '*@*')
