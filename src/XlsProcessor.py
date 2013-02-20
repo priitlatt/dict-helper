@@ -14,6 +14,7 @@ class XlsProcessor:
         self.show_rus_warning = False
         self.show_eng_warning = False
         self.everything_ok = False
+        self.all_codes_present = True
     
     def open_book(self, filepath):
         self.filepath = filepath
@@ -28,6 +29,9 @@ class XlsProcessor:
             self.message = "Something went wrong\n" + str(e)
             print(e)
         finally:
+            self.codes_trimmed = [code for code in self.codes if code != ""] 
+            if len(self.codes_trimmed) < len(self.est):
+                self.all_codes_present = False
             return True
 
     def process_xls(self):

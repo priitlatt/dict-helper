@@ -103,6 +103,8 @@ class DictHelperUI:
         stop = time.time()
         self.lbl_text.set(xls_processor.message + 
                               '\nTotal time ' + str(int(stop-start)) + " seconds")
+        if not xls_processor.all_codes_present:
+            messagebox.showinfo("Caution", "Some codes were missing. Check source file to avoid conflicts!")
         if xls_processor.show_eng_warning and xls_processor.show_rus_warning:
             messagebox.showinfo("Caution", "Unexpected word(s) in the end of english and russian tables")
         elif xls_processor.show_eng_warning:
