@@ -132,11 +132,10 @@ class XlsProcessor:
             self.message = "Writing document"
             
             for i in range(len(eng_sorted_letters)):
-                ws.write(i, 0, eng_sorted_letters[i])#[0] + ' ' + eng_sorted_letters[i][1])
+                ws.write(i, 0, eng_sorted_letters[i])
             for j in range(len(rus_sorted_letters)):
-                ws.write(j, 1, rus_sorted_letters[j])#[0] + ' ' + rus_sorted_letters[j][1])
+                ws.write(j, 1, rus_sorted_letters[j])
             
-            #self.set_warnings(eng_sorted_letters[-1][0], rus_sorted_letters[-1][0])
             self.set_warnings(eng_sorted_letters[-1], rus_sorted_letters[-1])
             
             self.save_file(wb)
