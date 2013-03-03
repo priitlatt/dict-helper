@@ -179,25 +179,27 @@ class XlsProcessor:
         path_array = self.filepath.split('/')
         filename = path_array[-1]
         if filename.endswith('x'):
-            filename = filename[:-1]
+            filename = filename[:-5]
+        else:
+            filename = filename[:-4]
         path_array.pop()
         path = '/'.join(path_array) + '/'
         while file_exists:
             try:
                 if count == 1:
                     if original:
-                        filename_modification = "fixed_"
+                        sufix = "_fixed.xls"
                     else:
-                        filename_modification = "processed_"
+                        sufix = "_processed.xls"
                 else:
                     if original:
-                        filename_modification = "fixed" + str(count) + "_"
+                        sufix = "_fixed" + str(count) + ".xls"
                     else:
-                        filename_modification = "processed" + str(count) + "_"
-                with open(path+filename_modification+filename):
+                        sufix = "_processed" + str(count) + ".xls"
+                with open(path + filename + sufix):
                     pass
             except IOError:
-                print("File doesn't exist")
+                # print("File doesn't exist")
                 file_exists = False
             except Exception as e:
                 print(e)
@@ -206,12 +208,12 @@ class XlsProcessor:
             finally:
                 count += 1
         try:
-            wb.save(path+filename_modification+filename)
+            wb.save(path + filename + sufix)
         except Exception as e:
             self.message = "Something went wrong\n" + str(e)
             print(e)
         if not original:
-            self.message = "Finished. " + "Saved file\n" + str(filename_modification+filename)
+            self.message = "Finished. " + "Saved file\n" + str(filename + sufix)
 
     def split_rows(self, array, splitter = ', '):
         new_array = []
